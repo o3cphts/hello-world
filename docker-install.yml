@@ -1,0 +1,37 @@
+---
+- name: Install Docker CE (simple)
+  hosts: docker
+  become: true
+  gather_facts: false
+
+  vars:
+    docker_packages:
+      - yum-utils
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+      - bash-completion
+
+  tasks:
+    - name: Add Docker CE repository
+      yum_repository:
+        name: docker-ce-stable
+        description: Docker CE Stable - $releasever - $basearch
+        baseurl: "https://download.docker.com/linux/centos/$releasever/$basearch/stable"
+        gpgcheck: yes
+        gpgkey: https://download.docker.com/linux/centos/gpg
+        enabled: yes
+
+    - name: Install Docker CE and tools
+      package:
+        name: "{{ docker_packages }}"
+        state: present
+      register: pkgs
+
+    - name: Enable & start docker
+      service:
+        name: docker
+        enabled: true
+        state: started
